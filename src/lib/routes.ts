@@ -1,0 +1,20 @@
+export const ROUTES = {
+  home: '/',
+  quemSomos: '/quem-somos',
+  demandas: '/demandas',
+  bazar: '/bazar',
+  detalhes: (id: string) => `/detalhes-produto/${id}`,
+  loja: (email: string) => `/loja?loja=${encodeURIComponent(email)}`,
+  perfilUsuario: (email: string) => `/perfil-usuario?email=${encodeURIComponent(email)}`,
+  entrar: '/entrar',
+  registrar: '/registrar',
+  painel: '/painel',
+  perfil: '/perfil',
+  carrinho: '/carrinho',
+  pedidos: (estado: 'compras' | 'vendas' = 'compras', page = 0) =>
+    `/pedidos?estado=${estado}&page=${page}`,
+  cadastrarProduto: '/cadastrar-produto',
+  editarProduto: (id: string) => `/editar-produto/${id}`,
+  gerenciarVendas: '/gerenciar-vendas',
+  contato: '/contato',
+} as const;

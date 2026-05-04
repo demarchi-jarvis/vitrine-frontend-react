@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #FAF7F2;
+    --foreground: #1C0A00;
+  }
+
+  html {
+    scroll-behavior: auto; /* Lenis handles smooth scroll */
+  }
+
+  body {
+    @apply bg-sand-50 text-wood-900 font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    @apply bg-terracotta-600 text-sand-50;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-sand-100;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-wood-300 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-terracotta-600;
+  }
+}
+
+@layer components {
+  /* Glassmorphism base */
+  .glass {
+    @apply backdrop-blur-md bg-white/60 border border-white/40 shadow-lg;
+  }
+
+  .glass-dark {
+    @apply backdrop-blur-md bg-wood-900/60 border border-white/10 shadow-lg;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      #EDE0CC 25%,
+      #F5EFE6 50%,
+      #EDE0CC 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Card hover pattern */
+  .card-hover {
+    @apply transition-all duration-700 ease-organic hover:shadow-xl hover:-translate-y-1;
+  }
+
+  /* Product image zoom */
+  .img-zoom {
+    @apply transition-transform duration-700 ease-organic group-hover:scale-110;
+  }
+
+  /* Focus ring */
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta-600 focus-visible:ring-offset-2;
+  }
+}
+
+@layer utilities {
+  .ease-organic {
+    transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  /* Bento grid helpers */
+  .bento-featured {
+    @apply col-span-12 md:col-span-7 row-span-2;
+  }
+  .bento-half {
+    @apply col-span-12 md:col-span-5;
+  }
+  .bento-third {
+    @apply col-span-12 md:col-span-4;
+  }
+
+  /* Text reveal clip */
+  .text-reveal-wrapper {
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  /* Dark mode sepia tones */
+  .dark body {
+    @apply bg-wood-900 text-sand-100;
+  }
+}
