@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CarrinhoItem } from '@/components/carrinho/CarrinhoItem';

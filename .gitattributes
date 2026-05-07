@@ -1,0 +1,3 @@
+# Ensure LF line endings on all platforms (Windows compatibility)
+* text=auto eol=lf
+*.bat text eol=crlf
