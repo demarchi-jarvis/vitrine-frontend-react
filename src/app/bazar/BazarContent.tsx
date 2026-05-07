@@ -10,6 +10,7 @@ import { Pagination } from '@/components/ui/Pagination';
 import { getProdutos } from '@/lib/api/produto';
 import { getCategorias } from '@/lib/api/categoria';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useAuthStore } from '@/store/auth.store';
 import type { Produto, Categoria } from '@/types';
 
 const PAGE_SIZE = 12;
@@ -17,6 +18,7 @@ const PAGE_SIZE = 12;
 export function BazarContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { token } = useAuthStore();
 
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -38,8 +40,8 @@ export function BazarContent() {
   }, [router]);
 
   useEffect(() => {
-    getCategorias().then(setCategorias).catch(() => {});
-  }, []);
+    getCategorias(token ?? undefined).then(setCategorias).catch(() => {});
+  }, [token]);
 
   useEffect(() => {
     setLoading(true);

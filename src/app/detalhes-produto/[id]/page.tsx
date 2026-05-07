@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
@@ -12,9 +13,15 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+async function getToken(): Promise<string> {
+  const store = await cookies();
+  return store.get('authToken')?.value ?? '';
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const produto = await getProdutoById(id, '').catch(() => null);
+  const token = await getToken();
+  const produto = await getProdutoById(id, token).catch(() => null);
   if (!produto) return { title: 'Produto não encontrado' };
   return {
     title: `${produto.nome} — Vitrine do Artesanato`,
@@ -29,7 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function DetalhesProdutoPage({ params }: Props) {
   const { id } = await params;
-  const produto = await getProdutoById(id, '').catch(() => null);
+  const token = await getToken();
+  const produto = await getProdutoById(id, token).catch(() => null);
 
   if (!produto) notFound();
 

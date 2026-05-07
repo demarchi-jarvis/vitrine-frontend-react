@@ -3,22 +3,15 @@ import type { Produto, ProdutoPayload, PaginaResponse, ProdutoFilters } from '@/
 
 const BASE = '/produtos';
 
-// Público — sem token (SSR/SSG para bazar e detalhes)
+// Público — usa /filtro que é permitAll no Spring Security
+// GET /produtos requer auth, /filtro não — sempre usar /filtro para listagem pública
 export async function getProdutos(filters: ProdutoFilters = {}): Promise<PaginaResponse<Produto>> {
   const params = new URLSearchParams();
   if (filters.page !== undefined) params.set('page', String(filters.page));
   if (filters.size !== undefined) params.set('size', String(filters.size));
-  if (filters.nome) params.set('nome', filters.nome);
+  if (filters.categoriaId) params.set('categoriaId', filters.categoriaId);
   const qs = params.toString();
-
-  // Se há categoriaId, usa o endpoint de filtro (igual ao Angular: /produtos/filtro)
-  if (filters.categoriaId) {
-    const fp = new URLSearchParams(qs);
-    fp.set('categoriaId', filters.categoriaId);
-    return clientFetch(`${BASE}/filtro?${fp}`);
-  }
-
-  return clientFetch(`${BASE}${qs ? `?${qs}` : ''}`);
+  return clientFetch(`${BASE}/filtro${qs ? `?${qs}` : ''}`);
 }
 
 export async function getProdutoById(id: string, token: string): Promise<Produto> {
