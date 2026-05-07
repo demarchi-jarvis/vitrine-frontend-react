@@ -38,7 +38,7 @@ export function BazarContent() {
   }, [router]);
 
   useEffect(() => {
-    getCategorias('').catch(() => []).then(setCategorias);
+    getCategorias().then(setCategorias).catch(() => {});
   }, []);
 
   useEffect(() => {

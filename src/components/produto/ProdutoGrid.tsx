@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { Produto } from '@/types';
 import { ProdutoCard } from './ProdutoCard';
 import { ProdutoCardSkeleton } from '@/components/ui/Skeleton';
@@ -28,7 +28,6 @@ export function ProdutoGrid({
   function handleAdicionarCarrinho(produto: Produto) {
     adicionar(produto);
     toast.success(`${produto.nome} adicionado ao carrinho!`);
-    // BUG-10 fix: usar router.push, não window.location
     router.push(ROUTES.carrinho);
   }
 
@@ -44,32 +43,27 @@ export function ProdutoGrid({
 
   if (!produtos.length) {
     return (
-      <div className="text-center py-24">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="text-center py-24"
+      >
         <p className="text-wood-400 text-lg">{emptyMessage}</p>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <motion.div
-      layout
-      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
-    >
+    <motion.div layout className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
       <AnimatePresence mode="popLayout">
         {produtos.map((produto, i) => (
-          <motion.div
+          <ProdutoCard
             key={produto.id}
-            layout
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0, transition: { delay: i * 0.05 } }}
-            exit={{ opacity: 0, scale: 0.95 }}
-          >
-            <ProdutoCard
-              produto={produto}
-              showOwnerActions={showOwnerActions}
-              onAdicionarCarrinho={showOwnerActions ? undefined : handleAdicionarCarrinho}
-            />
-          </motion.div>
+            produto={produto}
+            index={i}
+            showOwnerActions={showOwnerActions}
+            onAdicionarCarrinho={showOwnerActions ? undefined : handleAdicionarCarrinho}
+          />
         ))}
       </AnimatePresence>
     </motion.div>

@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, User, Menu, X, LogOut, Package, Settings } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, LogOut, Package, Settings, Plus } from 'lucide-react';
 import { useCarrinhoStore } from '@/store/carrinho.store';
 import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/lib/routes';
@@ -23,6 +24,7 @@ export function Header() {
   const bgOpacity = useTransform(scrollY, [0, 80], [0, 1]);
   const shadowOpacity = useTransform(scrollY, [0, 80], [0, 0.1]);
 
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const totalItens = useCarrinhoStore((s) => s.totalItens());
@@ -32,7 +34,12 @@ export function Header() {
   useEffect(() => {
     setMobileOpen(false);
     setUserMenuOpen(false);
-  }, []);
+  }, [pathname]);
+
+  function isActive(href: string) {
+    if (href === ROUTES.home) return pathname === href;
+    return pathname.startsWith(href);
+  }
 
   return (
     <>
@@ -67,9 +74,21 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-wood-700 hover:text-terracotta-600 text-sm font-medium transition-colors duration-300"
+                className={cn(
+                  'relative text-sm font-medium transition-colors duration-300 py-1',
+                  isActive(link.href)
+                    ? 'text-terracotta-600'
+                    : 'text-wood-700 hover:text-terracotta-600',
+                )}
               >
                 {link.label}
+                {isActive(link.href) && (
+                  <motion.span
+                    layoutId="nav-indicator"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-terracotta-600 rounded-full"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
               </Link>
             ))}
           </nav>
@@ -100,8 +119,9 @@ export function Header() {
             {/* User */}
             {isLoggedIn ? (
               <div className="relative">
-                <button
+                <motion.button
                   onClick={() => setUserMenuOpen((o) => !o)}
+                  whileTap={{ scale: 0.95 }}
                   className="p-2 rounded-full hover:bg-sand-100 transition-colors duration-300 focus-ring"
                   aria-label="Menu do usuário"
                 >
@@ -116,7 +136,7 @@ export function Header() {
                   ) : (
                     <User strokeWidth={1.25} className="w-5 h-5 text-wood-700" />
                   )}
-                </button>
+                </motion.button>
 
                 <AnimatePresence>
                   {userMenuOpen && (
@@ -134,13 +154,13 @@ export function Header() {
                         { href: ROUTES.painel, label: 'Painel', icon: Settings },
                         { href: ROUTES.perfil, label: 'Meu Perfil', icon: User },
                         { href: ROUTES.pedidos(), label: 'Pedidos', icon: Package },
-                        { href: ROUTES.cadastrarProduto, label: 'Vender', icon: Package },
+                        { href: ROUTES.cadastrarProduto, label: 'Vender', icon: Plus },
                       ].map(({ href, label, icon: Icon }) => (
                         <Link
                           key={href}
                           href={href}
                           onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-wood-700 hover:bg-sand-100 hover:text-terracotta-600 transition-colors"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-wood-700 hover:bg-sand-100 hover:text-terracotta-600 transition-colors cursor-pointer"
                         >
                           <Icon strokeWidth={1.25} className="w-4 h-4" />
                           {label}
@@ -148,7 +168,7 @@ export function Header() {
                       ))}
                       <button
                         onClick={() => { setUserMenuOpen(false); logout(); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-terracotta-600 hover:bg-terracotta-600/10 transition-colors border-t border-sand-200 mt-1"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-terracotta-600 hover:bg-terracotta-600/10 transition-colors border-t border-sand-200 mt-1 cursor-pointer"
                       >
                         <LogOut strokeWidth={1.25} className="w-4 h-4" />
                         Sair
@@ -164,7 +184,7 @@ export function Header() {
                   'hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium',
                   'bg-terracotta-600 text-sand-50 hover:bg-terracotta-700',
                   'transition-all duration-300 ease-organic hover:scale-[1.02]',
-                  'focus-ring',
+                  'focus-ring cursor-pointer',
                 )}
               >
                 Entrar
@@ -172,17 +192,36 @@ export function Header() {
             )}
 
             {/* Mobile hamburger */}
-            <button
+            <motion.button
               onClick={() => setMobileOpen((o) => !o)}
-              className="lg:hidden p-2 rounded-full hover:bg-sand-100 transition-colors focus-ring"
+              whileTap={{ scale: 0.92 }}
+              className="lg:hidden p-2 rounded-full hover:bg-sand-100 transition-colors focus-ring cursor-pointer"
               aria-label="Abrir menu"
             >
-              {mobileOpen ? (
-                <X strokeWidth={1.25} className="w-5 h-5 text-wood-900" />
-              ) : (
-                <Menu strokeWidth={1.25} className="w-5 h-5 text-wood-900" />
-              )}
-            </button>
+              <AnimatePresence mode="wait" initial={false}>
+                {mobileOpen ? (
+                  <motion.span
+                    key="close"
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <X strokeWidth={1.25} className="w-5 h-5 text-wood-900" />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="open"
+                    initial={{ rotate: 90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: -90, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Menu strokeWidth={1.25} className="w-5 h-5 text-wood-900" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
           </div>
         </div>
       </motion.header>
@@ -197,13 +236,18 @@ export function Header() {
             transition={{ duration: 0.3 }}
             className="fixed inset-x-0 top-16 z-40 glass border-b border-sand-200 lg:hidden"
           >
-            <nav className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-4">
+            <nav className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-1">
               {NAV_LINKS.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className="text-wood-700 hover:text-terracotta-600 font-medium py-2 border-b border-sand-200 last:border-0 transition-colors"
+                  className={cn(
+                    'font-medium py-3 px-3 rounded-xl border-b border-sand-200 last:border-0 transition-colors cursor-pointer',
+                    isActive(link.href)
+                      ? 'text-terracotta-600 bg-terracotta-600/5'
+                      : 'text-wood-700 hover:text-terracotta-600 hover:bg-sand-100',
+                  )}
                 >
                   {link.label}
                 </Link>
@@ -212,7 +256,7 @@ export function Header() {
                 <Link
                   href={ROUTES.entrar}
                   onClick={() => setMobileOpen(false)}
-                  className="mt-2 px-6 py-3 rounded-full bg-terracotta-600 text-sand-50 text-center font-medium"
+                  className="mt-3 px-6 py-3 rounded-full bg-terracotta-600 text-sand-50 text-center font-medium cursor-pointer"
                 >
                   Entrar
                 </Link>

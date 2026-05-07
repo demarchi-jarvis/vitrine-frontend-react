@@ -37,7 +37,7 @@ export default function RegistrarPage() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
-  async function onSubmit({ confirmarSenha: _, ...data }: FormData) {
+  async function onSubmit({ confirmarSenha: _confirmarSenha, ...data }: FormData) {
     try {
       const authRes = await registrar(data);
 

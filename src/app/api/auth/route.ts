@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { login as apiLogin, registrar as apiRegistrar } from '@/lib/api/auth';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -9,22 +8,14 @@ const COOKIE_OPTIONS = {
   path: '/',
 };
 
-// BUG-01 fix: token vai para cookie httpOnly, nunca localStorage
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const action = request.nextUrl.searchParams.get('action') ?? 'login';
-
-  try {
-    const data = action === 'registrar' ? await apiRegistrar(body) : await apiLogin(body);
-
-    const res = NextResponse.json({ nome: data.nome });
-    res.cookies.set('authToken', data.token, COOKIE_OPTIONS);
-    return res;
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Erro de autenticação';
-    const status = (err as { status?: number }).status ?? 401;
-    return NextResponse.json({ error: message }, { status });
+  const body = await request.json() as { token?: string; nome?: string };
+  if (!body?.token) {
+    return NextResponse.json({ error: 'Token ausente' }, { status: 400 });
   }
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set('authToken', body.token, COOKIE_OPTIONS);
+  return res;
 }
 
 export async function DELETE() {

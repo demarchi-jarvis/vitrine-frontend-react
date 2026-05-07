@@ -1,5 +1,5 @@
 import { serverFetch, clientFetch } from './client';
-import type { Perfil, UsuarioUpdate, ToggleLojaPayload, Usuario } from '@/types';
+import type { Perfil, UsuarioUpdate, ToggleLojaPayload, Usuario, PaginaResponse } from '@/types';
 
 const BASE = '/usuarios';
 
@@ -10,6 +10,17 @@ export async function getUsuarioLogado(token: string): Promise<Perfil> {
 
 export async function getDonoLoja(email: string, token: string): Promise<Usuario> {
   return serverFetch(`${BASE}/dono?email=${encodeURIComponent(email)}`, token);
+}
+
+export async function getPerfis(
+  token: string,
+  page = 0,
+  size = 8,
+  nome?: string,
+): Promise<PaginaResponse<Usuario>> {
+  const params = new URLSearchParams({ page: String(page), size: String(size) });
+  if (nome) params.set('nome', nome);
+  return clientFetch(`${BASE}/perfis?${params}`, { token });
 }
 
 export async function atualizarPerfil(payload: UsuarioUpdate, token: string): Promise<Perfil> {

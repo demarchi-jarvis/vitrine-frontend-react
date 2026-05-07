@@ -60,9 +60,7 @@ export const useCarrinhoStore = create<CarrinhoStore>()(
     }),
     {
       name: 'carrinho',
-      storage: createJSONStorage(() =>
-        typeof window !== 'undefined' ? sessionStorage : localStorage,
-      ),
+      storage: createJSONStorage(() => sessionStorage),
     },
   ),
 );

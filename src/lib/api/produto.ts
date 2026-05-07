@@ -7,10 +7,17 @@ const BASE = '/produtos';
 export async function getProdutos(filters: ProdutoFilters = {}): Promise<PaginaResponse<Produto>> {
   const params = new URLSearchParams();
   if (filters.page !== undefined) params.set('page', String(filters.page));
-  if (filters.size !== undefined) params.set('size', String(filters.size ?? 12));
-  if (filters.categoriaId) params.set('categoriaId', filters.categoriaId);
+  if (filters.size !== undefined) params.set('size', String(filters.size));
   if (filters.nome) params.set('nome', filters.nome);
   const qs = params.toString();
+
+  // Se há categoriaId, usa o endpoint de filtro (igual ao Angular: /produtos/filtro)
+  if (filters.categoriaId) {
+    const fp = new URLSearchParams(qs);
+    fp.set('categoriaId', filters.categoriaId);
+    return clientFetch(`${BASE}/filtro?${fp}`);
+  }
+
   return clientFetch(`${BASE}${qs ? `?${qs}` : ''}`);
 }
 

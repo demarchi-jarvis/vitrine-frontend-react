@@ -3,8 +3,8 @@ import type { Categoria } from '@/types';
 
 const BASE = '/categorias';
 
-export async function getCategorias(token: string): Promise<Categoria[]> {
-  const all = await clientFetch<Categoria[]>(BASE, { token });
+export async function getCategorias(token?: string): Promise<Categoria[]> {
+  const all = await clientFetch<Categoria[]>(BASE, token ? { token } : undefined);
   return all.filter((c) => c.nome !== 'Todos');
 }
 

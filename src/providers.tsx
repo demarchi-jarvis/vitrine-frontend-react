@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'sonner';
 import Lenis from 'lenis';
+import { useAuthStore } from '@/store/auth.store';
+import type { Perfil } from '@/types';
 
 function LenisProvider({ children }: { children: React.ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null);
@@ -33,6 +35,22 @@ function LenisProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function AuthHydrator() {
+  const { isLoggedIn, setAuth } = useAuthStore();
+
+  useEffect(() => {
+    if (isLoggedIn) return;
+    fetch('/api/me')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { perfil: Perfil; token: string } | null) => {
+        if (data?.perfil && data?.token) setAuth(data.perfil, data.token);
+      })
+      .catch(() => {});
+  }, [isLoggedIn, setAuth]);
+
+  return null;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -45,6 +63,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AuthHydrator />
       <LenisProvider>
         {children}
         <Toaster
