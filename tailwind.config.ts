@@ -6,6 +6,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        /* ── Brand palette (fixed hex) ── */
         sand: {
           50: '#FAF7F2',
           100: '#F5EFE6',
@@ -40,6 +41,23 @@ const config: Config = {
           600: '#B36A1C',
           700: '#8A4F12',
         },
+        /* ── Semantic tokens (CSS-var powered — switch on dark mode) ── */
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        surface: {
+          DEFAULT: 'hsl(var(--surface))',
+          elevated: 'hsl(var(--surface-elevated))',
+        },
+        primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          hover: 'hsl(var(--primary-hover))',
+          foreground: 'hsl(var(--primary-fg))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-fg))',
+        },
+        ring: 'hsl(var(--ring))',
       },
       fontFamily: {
         serif: ['var(--font-playfair)', 'Georgia', 'serif'],

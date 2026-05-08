@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { useCep } from '@/hooks/useCep';
 import { cadastrarEndereco, atualizarEndereco, getEnderecoUsuario } from '@/lib/api/endereco';
 import { useAuthStore } from '@/store/auth.store';
+import { useTranslation } from '@/contexts/LanguageContext';
 import type { EnderecoResponse } from '@/types';
 
 const schema = z.object({
@@ -28,6 +29,7 @@ type FormData = z.infer<typeof schema>;
 
 export function EnderecoForm() {
   const { token } = useAuthStore();
+  const { t } = useTranslation();
   const [enderecoExistente, setEnderecoExistente] = useState<EnderecoResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -107,7 +109,7 @@ export function EnderecoForm() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-terracotta-600" />
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -116,22 +118,22 @@ export function EnderecoForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="relative">
         <Input
-          label="CEP"
+          label={t.address.cep}
           placeholder="00000-000"
           error={errors.cep?.message}
           {...register('cep')}
         />
         {cepLoading && (
-          <Loader2 className="w-4 h-4 animate-spin text-terracotta-600 absolute right-4 bottom-3.5" />
+          <Loader2 className="w-4 h-4 animate-spin text-primary absolute right-4 bottom-3.5" />
         )}
       </div>
 
       <div className="grid grid-cols-3 gap-4">
         <div className="col-span-2">
-          <Input label="Rua / Logradouro" error={errors.rua?.message} {...register('rua')} />
+          <Input label={t.address.street} error={errors.rua?.message} {...register('rua')} />
         </div>
         <Input
-          label="Número"
+          label={t.address.number}
           type="number"
           error={errors.numero?.message}
           {...register('numero', { valueAsNumber: true })}
@@ -139,19 +141,32 @@ export function EnderecoForm() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Input label="Bairro" error={errors.bairro?.message} {...register('bairro')} />
-        <Input label="Complemento" placeholder="Apto, bloco…" {...register('complemento')} />
+        <Input label={t.address.neighborhood} error={errors.bairro?.message} {...register('bairro')} />
+        <Input
+          label={t.address.complement}
+          placeholder={t.address.complementPlaceholder}
+          {...register('complemento')}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Input label="Cidade" error={errors.cidade?.message} {...register('cidade')} />
-        <Input label="Estado (UF)" maxLength={2} error={errors.estado?.message} {...register('estado')} />
+        <Input label={t.address.city} error={errors.cidade?.message} {...register('cidade')} />
+        <Input
+          label={t.address.state}
+          maxLength={2}
+          error={errors.estado?.message}
+          {...register('estado')}
+        />
       </div>
 
-      <Input label="Informações adicionais" placeholder="Referência, observações…" {...register('adicional')} />
+      <Input
+        label={t.address.additional}
+        placeholder={t.address.additionalPlaceholder}
+        {...register('adicional')}
+      />
 
       <Button type="submit" loading={isSubmitting} className="w-full">
-        {enderecoExistente ? 'Atualizar endereço' : 'Cadastrar endereço'}
+        {enderecoExistente ? t.address.update : t.address.save}
       </Button>
     </form>
   );

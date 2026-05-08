@@ -11,6 +11,7 @@ import { getProdutos } from '@/lib/api/produto';
 import { getCategorias } from '@/lib/api/categoria';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useAuthStore } from '@/store/auth.store';
+import { useTranslation } from '@/contexts/LanguageContext';
 import type { Produto, Categoria } from '@/types';
 
 const PAGE_SIZE = 12;
@@ -19,6 +20,7 @@ export function BazarContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { token } = useAuthStore();
+  const { t } = useTranslation();
 
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -73,9 +75,9 @@ export function BazarContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-terracotta-600 text-xs font-medium uppercase tracking-widest mb-2">Bazar</p>
+          <p className="text-terracotta-600 text-xs font-medium uppercase tracking-widest mb-2">{t.bazar.label}</p>
           <h1 className="font-serif text-wood-900 text-4xl sm:text-5xl font-semibold leading-tight">
-            Todas as peças
+            {t.bazar.title}
           </h1>
         </motion.div>
 
@@ -84,7 +86,7 @@ export function BazarContent() {
           <input
             value={busca}
             onChange={(e) => { setBusca(e.target.value); setPage(0); }}
-            placeholder="Buscar por nome…"
+            placeholder={t.bazar.searchPlaceholder}
             className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm bg-sand-100 border border-sand-200 focus:outline-none focus:border-terracotta-600 focus:ring-2 focus:ring-terracotta-600/20 transition-all duration-300"
           />
         </div>
@@ -98,7 +100,7 @@ export function BazarContent() {
         <ProdutoGrid
           produtos={produtos}
           loading={loading}
-          emptyMessage="Nenhum produto encontrado para essa busca."
+          emptyMessage={t.bazar.empty}
         />
 
         {!loading && totalPages > 1 && (

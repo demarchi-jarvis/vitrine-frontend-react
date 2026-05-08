@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useCarrinhoStore } from '@/store/carrinho.store';
 import { ROUTES } from '@/lib/routes';
+import { useTranslation } from '@/contexts/LanguageContext';
 import type { Produto } from '@/types';
 
 interface AddToCartButtonProps {
@@ -15,30 +16,47 @@ interface AddToCartButtonProps {
 
 export function AddToCartButton({ produto }: AddToCartButtonProps) {
   const adicionar = useCarrinhoStore((s) => s.adicionar);
+  const itens = useCarrinhoStore((s) => s.itens);
   const router = useRouter();
+  const { t } = useTranslation();
   const [added, setAdded] = useState(false);
-  const navTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     return () => {
-      if (navTimer.current !== undefined) clearTimeout(navTimer.current);
       if (resetTimer.current !== undefined) clearTimeout(resetTimer.current);
     };
   }, []);
 
+  const itemNoCarrinho = itens.find((i) => i.id === produto.id);
+  const estoqueDisponivel = produto.quantidade - (itemNoCarrinho?.quantidade ?? 0);
+  const semEstoque = produto.quantidade <= 0;
+  const estoqueEsgotadoNoCarrinho = !semEstoque && estoqueDisponivel <= 0;
+  const disabled = semEstoque || estoqueEsgotadoNoCarrinho;
+
   function handleClick() {
-    if (produto.quantidade <= 0 || added) return;
+    if (disabled || added) return;
     adicionar(produto);
     setAdded(true);
-    toast.success(`${produto.nome} adicionado ao carrinho!`);
-    navTimer.current = setTimeout(() => {
-      router.push(ROUTES.carrinho);
-    }, 600);
-    resetTimer.current = setTimeout(() => setAdded(false), 2000);
+
+    toast.success(`${produto.nome} adicionado!`, {
+      action: {
+        label: t.product.viewCart,
+        onClick: () => router.push(ROUTES.carrinho),
+      },
+      duration: 4000,
+    });
+
+    resetTimer.current = setTimeout(() => setAdded(false), 2500);
   }
 
-  const disabled = produto.quantidade <= 0;
+  const label = semEstoque
+    ? t.product.noStock
+    : estoqueEsgotadoNoCarrinho
+    ? t.product.inCartMax
+    : added
+    ? t.product.added
+    : t.product.addCart;
 
   return (
     <motion.button
@@ -49,10 +67,10 @@ export function AddToCartButton({ produto }: AddToCartButtonProps) {
       transition={{ type: 'spring', stiffness: 400, damping: 20 }}
       className={`w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl text-base font-medium transition-all duration-300 cursor-pointer ${
         disabled
-          ? 'bg-sand-200 text-wood-400 cursor-not-allowed'
+          ? 'bg-surface text-muted-foreground cursor-not-allowed'
           : added
           ? 'bg-green-600 text-white'
-          : 'bg-terracotta-600 text-sand-50 hover:bg-terracotta-700'
+          : 'bg-primary text-primary-foreground hover:bg-primary-hover'
       }`}
     >
       <motion.span
@@ -62,7 +80,7 @@ export function AddToCartButton({ produto }: AddToCartButtonProps) {
         exit={{ scale: 0, rotate: 90 }}
         transition={{ type: 'spring', stiffness: 500, damping: 25 }}
       >
-        {disabled ? (
+        {semEstoque ? (
           <Package strokeWidth={1.25} className="w-5 h-5" />
         ) : added ? (
           <Check strokeWidth={2} className="w-5 h-5" />
@@ -70,7 +88,7 @@ export function AddToCartButton({ produto }: AddToCartButtonProps) {
           <ShoppingCart strokeWidth={1.25} className="w-5 h-5" />
         )}
       </motion.span>
-      {disabled ? 'Sem estoque' : added ? 'Adicionado!' : 'Adicionar ao carrinho'}
+      {label}
     </motion.button>
   );
 }

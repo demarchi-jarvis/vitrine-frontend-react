@@ -72,27 +72,28 @@ export default async function DetalhesProdutoPage({ params }: Props) {
           {/* Back */}
           <Link
             href={ROUTES.bazar}
-            className="inline-flex items-center gap-2 text-wood-500 text-sm hover:text-wood-900 transition-colors mb-8"
+            className="inline-flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft strokeWidth={1.25} className="w-4 h-4" />
             Voltar ao bazar
           </Link>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+          {/* md breakpoint for tablet — not just lg */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16">
             {/* Image */}
-            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden bg-sand-100">
+            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden bg-surface">
               <Image
                 src={produto.imagem || '/assets/placeholder-produto.svg'}
                 alt={produto.nome}
                 fill
                 priority
                 className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
+                sizes="(max-width: 768px) 100vw, 50vw"
                 placeholder="blur"
                 blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
               />
               {produto.categoria && (
-                <span className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-sand-50/90 text-wood-700 text-xs font-medium uppercase tracking-wide">
+                <span className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-background/90 backdrop-blur-sm text-foreground text-xs font-medium uppercase tracking-wide">
                   {produto.categoria.nome}
                 </span>
               )}
@@ -105,35 +106,35 @@ export default async function DetalhesProdutoPage({ params }: Props) {
                   href={ROUTES.loja(produto.autor.email)}
                   className="flex items-center gap-2.5 mb-4 group w-fit"
                 >
-                  <div className="relative w-9 h-9 rounded-full overflow-hidden bg-sand-200">
+                  <div className="relative w-9 h-9 rounded-full overflow-hidden bg-surface">
                     {produto.autor.foto && (
                       <Image src={produto.autor.foto} alt={produto.autor.nome} fill className="object-cover" sizes="36px" />
                     )}
                   </div>
-                  <span className="text-wood-600 text-sm group-hover:text-terracotta-600 transition-colors">
+                  <span className="text-muted-foreground text-sm group-hover:text-primary transition-colors">
                     por {produto.autor.nome}
                   </span>
                 </Link>
               )}
 
-              <h1 className="font-serif text-wood-900 text-3xl sm:text-4xl font-semibold leading-tight mb-3">
+              <h1 className="font-serif text-foreground text-3xl sm:text-4xl font-semibold leading-tight mb-3">
                 {produto.nome}
               </h1>
 
               {produto.descricao && (
-                <p className="text-wood-500 text-base leading-relaxed mb-6">{produto.descricao}</p>
+                <p className="text-muted-foreground text-base leading-relaxed mb-6">{produto.descricao}</p>
               )}
 
               <div className="flex items-end gap-3 mb-6">
-                <span className="text-terracotta-600 font-semibold text-3xl">
+                <span className="text-primary font-semibold text-3xl">
                   {formatBRL(produto.preco)}
                 </span>
-                <span className="text-wood-400 text-sm pb-1">
+                <span className="text-muted-foreground text-sm pb-1">
                   {produto.quantidade > 0 ? `${produto.quantidade} disponíveis` : 'Sem estoque'}
                 </span>
               </div>
 
-              <div className="border-t border-sand-200 pt-6 mt-auto">
+              <div className="border-t border-border pt-6 mt-auto">
                 <AddToCartButton produto={produto} />
               </div>
             </div>

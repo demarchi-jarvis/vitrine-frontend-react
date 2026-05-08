@@ -29,5 +29,20 @@ export function formatMes(yearMonth: string): string {
 }
 
 export function buildWhatsAppUrl(phone: string, message: string): string {
-  return `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+  const clean = phone.replace(/\D/g, '').slice(-15);
+  if (!/^\d{10,15}$/.test(clean)) {
+    throw new Error('Número de telefone inválido');
+  }
+  return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
+}
+
+export function getErrorMessage(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (typeof e === 'string') return e;
+  return 'Erro desconhecido';
+}
+
+export function sanitizeRedirect(path: string): string {
+  if (!path.startsWith('/') || path.startsWith('//')) return '/';
+  return path;
 }

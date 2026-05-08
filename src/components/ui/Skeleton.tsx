@@ -16,12 +16,15 @@ export function Skeleton({ className, rounded = '2xl' }: SkeletonProps) {
 
 export function ProdutoCardSkeleton() {
   return (
-    <div className="rounded-3xl overflow-hidden">
+    <div className="rounded-3xl overflow-hidden bg-surface border border-border">
       <Skeleton className="aspect-[4/5] w-full" rounded="3xl" />
-      <div className="p-4 space-y-2">
+      <div className="p-4 space-y-2.5">
         <Skeleton className="h-3 w-1/3" rounded="full" />
         <Skeleton className="h-5 w-3/4" rounded="lg" />
-        <Skeleton className="h-4 w-1/4" rounded="full" />
+        <div className="flex items-center justify-between pt-1">
+          <Skeleton className="h-4 w-1/4" rounded="full" />
+          <Skeleton className="h-8 w-8 rounded-xl" />
+        </div>
       </div>
     </div>
   );

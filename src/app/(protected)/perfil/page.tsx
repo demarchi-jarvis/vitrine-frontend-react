@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { User, MapPin, Package, Loader2 } from 'lucide-react';
 import { PerfilForm } from '@/components/perfil/PerfilForm';
@@ -9,23 +11,36 @@ import { ProdutoGrid } from '@/components/produto/ProdutoGrid';
 import { useAuthStore } from '@/store/auth.store';
 import { getUsuarioLogado } from '@/lib/api/usuario';
 import { getMeusProdutos } from '@/lib/api/produto';
+import { cn } from '@/lib/utils';
+import { useTranslation } from '@/contexts/LanguageContext';
 import type { Perfil, Produto } from '@/types';
 
 type Tab = 'perfil' | 'endereco' | 'produtos';
 
-const TABS: { id: Tab; label: string; Icon: typeof User }[] = [
-  { id: 'perfil', label: 'Dados pessoais', Icon: User },
-  { id: 'endereco', label: 'Endereço', Icon: MapPin },
-  { id: 'produtos', label: 'Meus produtos', Icon: Package },
-];
-
-export default function PerfilPage() {
+function PerfilContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { token, usuario, setAuth } = useAuthStore();
+  const { t } = useTranslation();
+
+  const TABS: { id: Tab; label: string; Icon: typeof User }[] = [
+    { id: 'perfil', label: t.profile.tabPersonal, Icon: User },
+    { id: 'endereco', label: t.profile.tabAddress, Icon: MapPin },
+    { id: 'produtos', label: t.profile.tabProducts, Icon: Package },
+  ];
+
   const [perfil, setPerfil] = useState<Perfil | null>(usuario);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loadingPerfil, setLoadingPerfil] = useState(!usuario);
   const [loadingProdutos, setLoadingProdutos] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>('perfil');
+
+  const activeTab = (searchParams.get('tab') as Tab | null) ?? 'perfil';
+
+  function setActiveTab(tab: Tab) {
+    const sp = new URLSearchParams(searchParams.toString());
+    sp.set('tab', tab);
+    router.replace(`/perfil?${sp}`, { scroll: false });
+  }
 
   useEffect(() => {
     if (!token || usuario) { setLoadingPerfil(false); return; }
@@ -46,7 +61,7 @@ export default function PerfilPage() {
   if (loadingPerfil) {
     return (
       <div className="min-h-screen pt-32 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-terracotta-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -56,19 +71,20 @@ export default function PerfilPage() {
   return (
     <div className="min-h-screen pt-24 pb-20">
       <div className="container mx-auto px-4 sm:px-6 max-w-3xl">
-        <h1 className="font-serif text-wood-900 text-3xl font-semibold mb-8">Meu Perfil</h1>
+        <h1 className="font-serif text-foreground text-3xl font-semibold mb-8">{t.profile.title}</h1>
 
         {/* Tab nav */}
-        <div className="flex gap-2 mb-8 border-b border-sand-200 pb-0">
+        <div className="flex gap-0 mb-8 border-b border-border overflow-x-auto scrollbar-none">
           {TABS.map(({ id, label, Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-300 -mb-px ${
+              className={cn(
+                'flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-300 -mb-px flex-shrink-0',
                 activeTab === id
-                  ? 'border-terracotta-600 text-terracotta-600'
-                  : 'border-transparent text-wood-500 hover:text-wood-900'
-              }`}
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border',
+              )}
             >
               <Icon strokeWidth={1.25} className="w-4 h-4" />
               {label}
@@ -96,5 +112,19 @@ export default function PerfilPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function PerfilPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen pt-32 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <PerfilContent />
+    </Suspense>
   );
 }

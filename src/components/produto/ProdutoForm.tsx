@@ -1,19 +1,22 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Plus, Minus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Label } from '@/components/ui/label';
+import { SelectRoot, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { getCategorias } from '@/lib/api/categoria';
 import { criarProduto, editarProduto, getProdutoById } from '@/lib/api/produto';
 import type { Categoria } from '@/types';
 import { useAuthStore } from '@/store/auth.store';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/lib/routes';
+import { cn } from '@/lib/utils';
 
 const schema = z.object({
   nome: z.string().min(2, 'Nome obrigatório'),
@@ -27,7 +30,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 interface ProdutoFormProps {
-  produtoId?: string; // undefined = criar, string = editar
+  produtoId?: string;
 }
 
 export function ProdutoForm({ produtoId }: ProdutoFormProps) {
@@ -42,6 +45,7 @@ export function ProdutoForm({ produtoId }: ProdutoFormProps) {
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -50,7 +54,6 @@ export function ProdutoForm({ produtoId }: ProdutoFormProps) {
 
   const quantidade = watch('quantidade');
 
-  // Load categorias
   useEffect(() => {
     if (!token) return;
     getCategorias(token)
@@ -59,7 +62,6 @@ export function ProdutoForm({ produtoId }: ProdutoFormProps) {
       .finally(() => setLoadingCats(false));
   }, [token]);
 
-  // Load produto for editing
   useEffect(() => {
     if (!produtoId || !token) return;
     getProdutoById(produtoId, token).then((p) => {
@@ -84,8 +86,7 @@ export function ProdutoForm({ produtoId }: ProdutoFormProps) {
       }
       router.push(ROUTES.perfil);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Erro desconhecido';
-      toast.error(msg);
+      toast.error(e instanceof Error ? e.message : 'Erro desconhecido');
     }
   }
 
@@ -93,41 +94,60 @@ export function ProdutoForm({ produtoId }: ProdutoFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 max-w-xl">
       <Input label="Nome do produto" error={errors.nome?.message} {...register('nome')} />
 
-      <div>
-        <label className="text-sm font-medium text-wood-800 block mb-1.5">Categoria</label>
-        <select
-          className="w-full px-4 py-3 rounded-xl text-sm bg-sand-100 border border-sand-200 focus:outline-none focus:border-terracotta-600"
-          disabled={loadingCats}
-          {...register('categoriaId')}
-        >
-          <option value="">Selecione…</option>
-          {categorias.map((c) => (
-            <option key={c.id} value={c.id}>{c.nome}</option>
-          ))}
-        </select>
+      {/* Category — Radix Select */}
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="categoria-select">Categoria</Label>
+        <Controller
+          control={control}
+          name="categoriaId"
+          render={({ field }) => (
+            <SelectRoot
+              value={field.value}
+              onValueChange={field.onChange}
+              disabled={loadingCats}
+            >
+              <SelectTrigger id="categoria-select">
+                <SelectValue placeholder={loadingCats ? 'Carregando…' : 'Selecione uma categoria'} />
+              </SelectTrigger>
+              <SelectContent>
+                {categorias.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </SelectRoot>
+          )}
+        />
         {errors.categoriaId && (
-          <p className="text-red-600 text-xs mt-1">{errors.categoriaId.message}</p>
+          <p className="text-red-500 dark:text-red-400 text-xs">{errors.categoriaId.message}</p>
         )}
       </div>
 
-      {/* Quantidade com +/- */}
-      <div>
-        <label className="text-sm font-medium text-wood-800 block mb-1.5">Quantidade</label>
+      {/* Quantidade */}
+      <div className="flex flex-col gap-1.5">
+        <Label>Quantidade</Label>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setValue('quantidade', Math.max(1, quantidade - 1))}
-            className="p-2 rounded-xl bg-sand-200 hover:bg-sand-300 transition-colors"
+            className={cn(
+              'p-2.5 rounded-xl bg-surface border border-border',
+              'hover:bg-surface-elevated transition-colors',
+            )}
           >
-            <Minus strokeWidth={1.25} className="w-4 h-4" />
+            <Minus strokeWidth={1.25} className="w-4 h-4 text-foreground" />
           </button>
-          <span className="w-12 text-center font-semibold text-wood-900">{quantidade}</span>
+          <span className="w-12 text-center font-semibold text-foreground tabular-nums">{quantidade}</span>
           <button
             type="button"
             onClick={() => setValue('quantidade', Math.min(99, quantidade + 1))}
-            className="p-2 rounded-xl bg-sand-200 hover:bg-sand-300 transition-colors"
+            className={cn(
+              'p-2.5 rounded-xl bg-surface border border-border',
+              'hover:bg-surface-elevated transition-colors',
+            )}
           >
-            <Plus strokeWidth={1.25} className="w-4 h-4" />
+            <Plus strokeWidth={1.25} className="w-4 h-4 text-foreground" />
           </button>
         </div>
       </div>
@@ -147,11 +167,12 @@ export function ProdutoForm({ produtoId }: ProdutoFormProps) {
         {...register('imagem')}
       />
 
-      <div>
-        <label className="text-sm font-medium text-wood-800 block mb-1.5">Descrição</label>
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="descricao">Descrição</Label>
         <textarea
+          id="descricao"
           rows={3}
-          className="w-full px-4 py-3 rounded-xl text-sm bg-sand-100 border border-sand-200 focus:outline-none focus:border-terracotta-600 resize-none"
+          className="field-base resize-none"
           {...register('descricao')}
         />
       </div>

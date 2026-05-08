@@ -9,13 +9,9 @@ import { Search, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/lib/routes';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
-
-const HERO_WORDS = ['A', 'Alma', 'da', 'Nossa', 'Terra', 'em', 'Suas', 'Mãos'];
-
-const SEARCH_MODES = ['Técnica', 'Material', 'Região', 'Artesão'] as const;
-type SearchMode = (typeof SEARCH_MODES)[number];
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -58,8 +54,15 @@ export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
-  const [searchMode, setSearchMode] = useState<SearchMode>('Técnica');
+  const { t } = useTranslation();
+
+  const searchModes = t.hero.searchModes as readonly string[];
+  const [searchMode, setSearchMode] = useState(searchModes[0]);
   const [query, setQuery] = useState('');
+
+  // Keep searchMode in sync when language changes
+  const currentModeIndex = searchModes.indexOf(searchMode);
+  const resolvedMode = currentModeIndex >= 0 ? searchMode : searchModes[0];
 
   // Parallax scroll
   const { scrollYProgress } = useScroll({
@@ -84,8 +87,10 @@ export function HeroSection() {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
-    router.push(`${ROUTES.bazar}?nome=${encodeURIComponent(query)}&modo=${searchMode}`);
+    router.push(`${ROUTES.bazar}?nome=${encodeURIComponent(query)}&modo=${resolvedMode}`);
   }
+
+  const heroWords = t.hero.words as readonly string[];
 
   return (
     <section ref={sectionRef} className="relative h-screen overflow-hidden">
@@ -131,19 +136,20 @@ export function HeroSection() {
           >
             <span className="w-2 h-2 rounded-full bg-terracotta-500 animate-pulse-slow" />
             <span className="text-sand-200 text-xs font-medium tracking-widest uppercase">
-              Incubadora Vassouras Tec
+              {t.hero.badge}
             </span>
           </motion.div>
 
           {/* H1 — Text Reveal */}
           <motion.div
+            key={t.hero.words.join('-')}
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="flex flex-wrap gap-x-4 gap-y-0 mb-6"
           >
-            {HERO_WORDS.map((word, i) => (
-              <div key={i} className="text-reveal-wrapper">
+            {heroWords.map((word, i) => (
+              <div key={`${word}-${i}`} className="text-reveal-wrapper">
                 <motion.span
                   variants={wordVariants}
                   className={cn(
@@ -165,8 +171,7 @@ export function HeroSection() {
             animate="visible"
             className="text-sand-300 text-base sm:text-lg max-w-lg mb-10 leading-relaxed"
           >
-            Peças únicas do Vale do Café, feitas à mão por artesãos que guardam a memória e a
-            alma da nossa cultura.
+            {t.hero.subtitle}
           </motion.p>
 
           {/* ── Semantic Search ── */}
@@ -178,13 +183,13 @@ export function HeroSection() {
           >
             {/* Mode selector tabs */}
             <div className="flex gap-1 mb-3">
-              {SEARCH_MODES.map((mode) => (
+              {searchModes.map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setSearchMode(mode)}
                   className={cn(
                     'px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300',
-                    searchMode === mode
+                    resolvedMode === mode
                       ? 'bg-terracotta-600 text-sand-50'
                       : 'bg-white/20 text-sand-200 hover:bg-white/30',
                   )}
@@ -202,7 +207,7 @@ export function HeroSection() {
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder={`Buscar por ${searchMode.toLowerCase()}…`}
+                  placeholder={t.hero.searchPlaceholder.replace('{mode}', resolvedMode.toLowerCase())}
                   className="flex-1 bg-transparent text-wood-900 placeholder:text-wood-400 text-sm outline-none"
                 />
               </div>
@@ -214,7 +219,7 @@ export function HeroSection() {
                   'hover:scale-[1.02] active:scale-[0.98]',
                 )}
               >
-                Buscar
+                {t.hero.searchBtn}
               </button>
             </form>
           </motion.div>
@@ -226,7 +231,7 @@ export function HeroSection() {
             transition={{ delay: 2.2, duration: 0.8 }}
             className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
           >
-            <span className="text-sand-400 text-xs tracking-widest uppercase">Explorar</span>
+            <span className="text-sand-400 text-xs tracking-widest uppercase">{t.hero.scroll}</span>
             <motion.div
               animate={{ y: [0, 6, 0] }}
               transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}

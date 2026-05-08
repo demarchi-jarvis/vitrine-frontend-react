@@ -3,9 +3,36 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Semantic design tokens ─────────────────────────────────── */
   :root {
-    --background: #FAF7F2;
-    --foreground: #1C0A00;
+    --background:       40 43% 97%;    /* sand-50  */
+    --foreground:       20 100% 5%;    /* wood-900 */
+    --surface:          38 47% 94%;    /* sand-100 */
+    --surface-elevated: 34 44% 87%;    /* sand-200 */
+    --border:           34 44% 87%;    /* sand-200 */
+    --border-strong:    32 42% 77%;    /* sand-300 */
+    --primary:          16 68% 61%;    /* terracotta-600 */
+    --primary-hover:    16 60% 52%;    /* terracotta-700 */
+    --primary-fg:       40 43% 97%;    /* sand-50  */
+    --muted:            34 44% 87%;    /* sand-200 */
+    --muted-fg:         22 40% 38%;    /* wood-500 */
+    --ring:             16 68% 61%;    /* terracotta-600 */
+    --radius:           0.75rem;
+  }
+
+  .dark {
+    --background:       20 100% 5%;   /* wood-900 */
+    --foreground:       40 43% 97%;   /* sand-50  */
+    --surface:          20 60% 13%;   /* wood-800 */
+    --surface-elevated: 20 50% 22%;   /* wood-700 */
+    --border:           20 50% 22%;   /* wood-700 */
+    --border-strong:    27 45% 58%;   /* wood-300 */
+    --primary:          14 65% 67%;   /* terracotta-500 (lighter for dark bg) */
+    --primary-hover:    16 68% 61%;   /* terracotta-600 */
+    --primary-fg:       40 43% 97%;   /* sand-50  */
+    --muted:            20 50% 22%;   /* wood-700 */
+    --muted-fg:         34 44% 87%;   /* sand-200 */
+    --ring:             14 65% 67%;   /* terracotta-500 */
   }
 
   html {
@@ -13,7 +40,9 @@
   }
 
   body {
-    @apply bg-sand-50 text-wood-900 font-sans antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    @apply font-sans antialiased;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -22,43 +51,41 @@
   }
 
   /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    @apply bg-sand-100;
-  }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: hsl(var(--surface)); }
   ::-webkit-scrollbar-thumb {
-    @apply bg-wood-300 rounded-full;
+    background: hsl(var(--border-strong));
+    border-radius: 9999px;
   }
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-terracotta-600;
-  }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary)); }
 }
 
 @layer components {
-  /* Glassmorphism base */
+  /* Glassmorphism */
   .glass {
-    @apply backdrop-blur-md bg-white/60 border border-white/40 shadow-lg;
+    backdrop-filter: blur(12px);
+    background: hsl(var(--background) / 0.8);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 4px 24px hsl(var(--foreground) / 0.06);
   }
 
   .glass-dark {
     @apply backdrop-blur-md bg-wood-900/60 border border-white/10 shadow-lg;
   }
 
-  /* Skeleton shimmer */
+  /* Skeleton — respects dark mode via CSS vars */
   .skeleton {
     background: linear-gradient(
       90deg,
-      #EDE0CC 25%,
-      #F5EFE6 50%,
-      #EDE0CC 75%
+      hsl(var(--surface)) 25%,
+      hsl(var(--surface-elevated)) 50%,
+      hsl(var(--surface)) 75%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
 
-  /* Card hover pattern */
+  /* Card hover */
   .card-hover {
     @apply transition-all duration-700 ease-organic hover:shadow-xl hover:-translate-y-1;
   }
@@ -70,7 +97,28 @@
 
   /* Focus ring */
   .focus-ring {
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta-600 focus-visible:ring-offset-2;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-terracotta-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-wood-900;
+  }
+
+  /* Form field base */
+  .field-base {
+    @apply w-full px-4 py-3 rounded-xl text-sm;
+    background: hsl(var(--surface));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field-base::placeholder {
+    color: hsl(var(--muted-fg) / 0.6);
+  }
+  .field-base:focus {
+    outline: none;
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.15);
+  }
+  .field-base:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 }
 
@@ -79,25 +127,16 @@
     transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
-  /* Scrollbar hidden */
   .scrollbar-none {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  .scrollbar-none::-webkit-scrollbar {
-    display: none;
-  }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
 
   /* Bento grid helpers */
-  .bento-featured {
-    @apply col-span-12 md:col-span-7 row-span-2;
-  }
-  .bento-half {
-    @apply col-span-12 md:col-span-5;
-  }
-  .bento-third {
-    @apply col-span-12 md:col-span-4;
-  }
+  .bento-featured { @apply col-span-12 md:col-span-7 row-span-2; }
+  .bento-half     { @apply col-span-12 md:col-span-5; }
+  .bento-third    { @apply col-span-12 md:col-span-4; }
 
   /* Text reveal clip */
   .text-reveal-wrapper {
@@ -105,17 +144,16 @@
     display: inline-block;
   }
 
-  /* Dark mode sepia tones */
-  .dark body {
-    @apply bg-wood-900 text-sand-100;
-  }
+  /* Token-aware background helpers */
+  .bg-token-surface   { background-color: hsl(var(--surface)); }
+  .bg-token-elevated  { background-color: hsl(var(--surface-elevated)); }
+  .border-token       { border-color: hsl(var(--border)); }
+  .text-token-muted   { color: hsl(var(--muted-fg)); }
 }
 
-/* ── Reduced motion: disable all animations ──────────────────────────────── */
+/* ── Reduced motion ───────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  ::before,
-  ::after {
+  *, ::before, ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -124,6 +162,6 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }

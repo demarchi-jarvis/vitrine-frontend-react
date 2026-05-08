@@ -1,27 +1,34 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { MessageCircle, Palette, Hammer, Leaf, Scissors } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageCircle, Palette, Hammer, Leaf, Scissors, X } from 'lucide-react';
 import Link from 'next/link';
-
-const CATEGORIAS_DEMANDA = [
-  { icon: Palette, label: 'Pintura & Arte' },
-  { icon: Hammer, label: 'Marcenaria' },
-  { icon: Leaf, label: 'Biojóias' },
-  { icon: Scissors, label: 'Tapeçaria & Bordado' },
-];
+import { Button } from '@/components/ui/Button';
+import { Label } from '@/components/ui/label';
+import { buildWhatsAppUrl } from '@/lib/utils';
+import { cn } from '@/lib/utils';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '5524999999999';
 
 export default function DemandasPage() {
+  const { t } = useTranslation();
   const [categoria, setCategoria] = useState('');
   const [descricao, setDescricao] = useState('');
   const [orcamento, setOrcamento] = useState('');
 
+  const CATEGORIAS_DEMANDA = [
+    { icon: Palette, label: t.demands.catPainting },
+    { icon: Hammer, label: t.demands.catWood },
+    { icon: Leaf, label: t.demands.catBio },
+    { icon: Scissors, label: t.demands.catTapestry },
+  ];
+
   function handleEnviar(e: React.FormEvent) {
     e.preventDefault();
     if (!descricao.trim()) return;
+    // WhatsApp message stays in PT (sent to artisan)
     const msg = [
       `*Solicitação de Encomenda — Vitrine do Artesanato*`,
       categoria ? `Categoria: ${categoria}` : '',
@@ -32,7 +39,21 @@ export default function DemandasPage() {
     ]
       .filter(Boolean)
       .join('\n');
-    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener noreferrer');
+
+    try {
+      const url = buildWhatsAppUrl(WHATSAPP, msg);
+      window.open(url, '_blank', 'noopener noreferrer');
+    } catch {
+      window.open(
+        `https://wa.me/${WHATSAPP.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`,
+        '_blank',
+        'noopener noreferrer',
+      );
+    }
+  }
+
+  function toggleCategoria(label: string) {
+    setCategoria((prev) => (prev === label ? '' : label));
   }
 
   return (
@@ -43,90 +64,118 @@ export default function DemandasPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-terracotta-600 text-xs font-medium uppercase tracking-widest mb-3">
-            Encomendas
+          <p className="text-primary dark:text-terracotta-400 text-xs font-medium uppercase tracking-widest mb-3">
+            {t.demands.label}
           </p>
-          <h1 className="font-serif text-wood-900 text-4xl sm:text-5xl font-semibold leading-tight mb-4">
-            Demandas
+          <h1 className="font-serif text-foreground text-4xl sm:text-5xl font-semibold leading-tight mb-4">
+            {t.demands.title}
           </h1>
-          <p className="text-wood-500 text-lg mb-10 leading-relaxed">
-            Não encontrou o que procura? Descreva a peça dos seus sonhos e conectamos você
-            diretamente ao artesão ideal do Vale do Café.
+          <p className="text-muted-foreground text-lg mb-10 leading-relaxed">
+            {t.demands.subtitle}
           </p>
 
           {/* Category selection */}
           <div className="mb-8">
-            <p className="text-sm font-medium text-wood-800 mb-3">Categoria da peça</p>
-            <div className="grid grid-cols-2 gap-3">
-              {CATEGORIAS_DEMANDA.map(({ icon: Icon, label }) => (
-                <motion.button
-                  key={label}
-                  type="button"
-                  onClick={() => setCategoria(categoria === label ? '' : label)}
-                  whileTap={{ scale: 0.97 }}
-                  className={`flex items-center gap-3 p-4 rounded-2xl border text-left transition-all duration-300 cursor-pointer ${
-                    categoria === label
-                      ? 'border-terracotta-600 bg-terracotta-600/5 text-terracotta-700'
-                      : 'border-sand-200 bg-sand-100 text-wood-700 hover:border-terracotta-600/40'
-                  }`}
-                >
-                  <div
-                    className={`p-2 rounded-xl transition-colors ${
-                      categoria === label ? 'bg-terracotta-600/15' : 'bg-sand-200'
-                    }`}
+            <div className="flex items-center justify-between mb-3">
+              <Label>{t.demands.categoryLabel}</Label>
+              <AnimatePresence>
+                {categoria && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    type="button"
+                    onClick={() => setCategoria('')}
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    <Icon strokeWidth={1.5} className="w-4 h-4" />
-                  </div>
-                  <span className="text-sm font-medium">{label}</span>
-                </motion.button>
-              ))}
+                    <X strokeWidth={1.5} className="w-3 h-3" />
+                    {t.demands.clear}
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {CATEGORIAS_DEMANDA.map(({ icon: Icon, label }) => {
+                const isSelected = categoria === label;
+                return (
+                  <motion.button
+                    key={label}
+                    type="button"
+                    onClick={() => toggleCategoria(label)}
+                    whileTap={{ scale: 0.97 }}
+                    aria-pressed={isSelected}
+                    className={cn(
+                      'flex items-center gap-3 p-4 rounded-2xl border text-left transition-all duration-300 cursor-pointer',
+                      isSelected
+                        ? 'border-primary bg-primary/8 dark:bg-primary/15 text-primary'
+                        : 'border-border bg-surface text-foreground hover:border-primary/40 hover:bg-surface-elevated',
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'p-2 rounded-xl transition-colors flex-shrink-0',
+                        isSelected ? 'bg-primary/15' : 'bg-surface-elevated',
+                      )}
+                    >
+                      <Icon strokeWidth={1.5} className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-medium">{label}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {categoria && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-muted-foreground text-xs mt-2"
+              >
+                {t.demands.deselect}
+              </motion.p>
+            )}
           </div>
 
           {/* Form */}
           <form onSubmit={handleEnviar} className="space-y-5">
-            <div>
-              <label className="text-sm font-medium text-wood-800 block mb-1.5">
-                Descreva a peça que você quer
-              </label>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="descricao" required>
+                {t.demands.descLabel}
+              </Label>
               <textarea
+                id="descricao"
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
                 rows={5}
                 required
-                placeholder="Ex: Cesto de vime grande com tampa, fundo oval, cores naturais…"
-                className="w-full px-4 py-3 rounded-xl text-sm text-wood-900 placeholder:text-wood-400 bg-sand-100 border border-sand-200 focus:outline-none focus:border-terracotta-600 focus:ring-2 focus:ring-terracotta-600/20 transition-all duration-300 resize-none"
+                placeholder={t.demands.descPlaceholder}
+                className="field-base resize-none"
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-wood-800 block mb-1.5">
-                Orçamento estimado (opcional)
-              </label>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="orcamento">{t.demands.budgetLabel}</Label>
               <input
+                id="orcamento"
                 type="text"
                 value={orcamento}
                 onChange={(e) => setOrcamento(e.target.value)}
-                placeholder="Ex: R$ 150 a R$ 300"
-                className="w-full px-4 py-3 rounded-xl text-sm text-wood-900 placeholder:text-wood-400 bg-sand-100 border border-sand-200 focus:outline-none focus:border-terracotta-600 focus:ring-2 focus:ring-terracotta-600/20 transition-all duration-300"
+                placeholder={t.demands.budgetPlaceholder}
+                className="field-base"
               />
             </div>
 
-            <motion.button
-              type="submit"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl bg-terracotta-600 text-sand-50 font-medium hover:bg-terracotta-700 transition-colors duration-300 cursor-pointer"
-            >
+            <Button type="submit" className="w-full" size="lg">
               <MessageCircle strokeWidth={1.5} className="w-5 h-5" />
-              Enviar demanda via WhatsApp
-            </motion.button>
+              {t.demands.send}
+            </Button>
           </form>
 
-          <p className="text-center text-wood-400 text-xs mt-6">
-            Você será redirecionado ao WhatsApp para completar o envio.{' '}
-            <Link href="/bazar" className="text-terracotta-600 hover:underline">
-              Ou explore o bazar
+          <p className="text-center text-muted-foreground text-xs mt-6">
+            {t.demands.redirect}{' '}
+            <Link href="/bazar" className="text-primary hover:underline underline-offset-4">
+              {t.demands.orExplore}
             </Link>{' '}
             para peças disponíveis.
           </p>

@@ -8,6 +8,7 @@ import type { Produto } from '@/types';
 import { formatBRL } from '@/lib/utils';
 import { ROUTES } from '@/lib/routes';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/contexts/LanguageContext';
 
 interface BentoGridProps {
   produtos: Produto[];
@@ -24,6 +25,8 @@ const itemVariants = {
 };
 
 export function BentoGrid({ produtos }: BentoGridProps) {
+  const { t } = useTranslation();
+
   if (!produtos.length) return null;
 
   const [featured, ...rest] = produtos;
@@ -37,11 +40,11 @@ export function BentoGrid({ produtos }: BentoGridProps) {
         variants={containerVariants}
         className="mb-12"
       >
-        <motion.p variants={itemVariants} className="text-terracotta-600 text-sm font-medium uppercase tracking-widest mb-3">
-          Galeria Premium
+        <motion.p variants={itemVariants} className="text-terracotta-600 dark:text-terracotta-400 text-sm font-medium uppercase tracking-widest mb-3">
+          {t.bento.label}
         </motion.p>
-        <motion.h2 variants={itemVariants} className="font-serif text-4xl md:text-5xl text-wood-900">
-          Peças em Destaque
+        <motion.h2 variants={itemVariants} className="font-serif text-4xl md:text-5xl text-wood-900 dark:text-sand-50">
+          {t.bento.title}
         </motion.h2>
       </motion.div>
 
@@ -55,21 +58,21 @@ export function BentoGrid({ produtos }: BentoGridProps) {
         {/* Featured — large */}
         {featured && (
           <motion.div variants={itemVariants} className="bento-featured">
-            <BentoCard produto={featured} size="large" />
+            <BentoCard produto={featured} size="large" seeItem={t.bento.seeItem} featured={t.bento.featured} />
           </motion.div>
         )}
 
         {/* Right column — 2 stacked */}
         {rest.slice(0, 2).map((produto) => (
           <motion.div key={produto.id} variants={itemVariants} className="bento-half">
-            <BentoCard produto={produto} size="medium" />
+            <BentoCard produto={produto} size="medium" seeItem={t.bento.seeItem} featured={t.bento.featured} />
           </motion.div>
         ))}
 
         {/* Bottom row — 3 equal */}
         {rest.slice(2, 5).map((produto) => (
           <motion.div key={produto.id} variants={itemVariants} className="bento-third">
-            <BentoCard produto={produto} size="small" />
+            <BentoCard produto={produto} size="small" seeItem={t.bento.seeItem} featured={t.bento.featured} />
           </motion.div>
         ))}
       </motion.div>
@@ -85,12 +88,12 @@ export function BentoGrid({ produtos }: BentoGridProps) {
           href={ROUTES.bazar}
           className={cn(
             'inline-flex items-center gap-2 px-8 py-4 rounded-full',
-            'border-2 border-wood-900 text-wood-900 font-medium',
-            'hover:bg-wood-900 hover:text-sand-50 transition-all duration-500 ease-organic',
-            'hover:scale-[1.02]',
+            'border-2 border-wood-900 dark:border-sand-200 text-wood-900 dark:text-sand-50 font-medium',
+            'hover:bg-wood-900 dark:hover:bg-sand-50 hover:text-sand-50 dark:hover:text-wood-900',
+            'transition-all duration-500 ease-organic hover:scale-[1.02]',
           )}
         >
-          Ver todas as peças
+          {t.bento.cta}
           <ArrowUpRight strokeWidth={1.25} className="w-4 h-4" />
         </Link>
       </motion.div>
@@ -98,7 +101,17 @@ export function BentoGrid({ produtos }: BentoGridProps) {
   );
 }
 
-function BentoCard({ produto, size }: { produto: Produto; size: 'large' | 'medium' | 'small' }) {
+function BentoCard({
+  produto,
+  size,
+  seeItem,
+  featured,
+}: {
+  produto: Produto;
+  size: 'large' | 'medium' | 'small';
+  seeItem: string;
+  featured: string;
+}) {
   return (
     <Link
       href={ROUTES.detalhes(produto.id)}
@@ -138,7 +151,7 @@ function BentoCard({ produto, size }: { produto: Produto; size: 'large' | 'mediu
           </p>
           <div className="mt-4 flex items-center justify-center gap-2 text-sand-50">
             <ArrowUpRight strokeWidth={1.25} className="w-4 h-4" />
-            <span className="text-sm font-medium">Ver peça</span>
+            <span className="text-sm font-medium">{seeItem}</span>
           </div>
         </div>
       </div>
@@ -164,7 +177,7 @@ function BentoCard({ produto, size }: { produto: Produto; size: 'large' | 'mediu
       {/* Premium badge for first item */}
       {size === 'large' && (
         <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-ocre-500 text-sand-50 text-xs font-medium">
-          ✦ Destaque
+          {featured}
         </div>
       )}
     </Link>

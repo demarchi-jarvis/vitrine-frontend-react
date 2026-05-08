@@ -1,11 +1,14 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'sonner';
 import Lenis from 'lenis';
 import { useAuthStore } from '@/store/auth.store';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import type { Perfil } from '@/types';
 
 function LenisProvider({ children }: { children: React.ReactNode }) {
@@ -37,16 +40,20 @@ function LenisProvider({ children }: { children: React.ReactNode }) {
 
 function AuthHydrator() {
   const { isLoggedIn, setAuth } = useAuthStore();
+  const hasHydrated = useRef(false);
 
   useEffect(() => {
-    if (isLoggedIn) return;
+    // Guard prevents double-hydration if component re-mounts (StrictMode, etc.)
+    if (hasHydrated.current || isLoggedIn) return;
+    hasHydrated.current = true;
+
     fetch('/api/me')
       .then((r) => (r.ok ? r.json() : null))
       .then((data: { perfil: Perfil; token: string } | null) => {
         if (data?.perfil && data?.token) setAuth(data.perfil, data.token);
       })
       .catch(() => {});
-  }, [isLoggedIn, setAuth]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }
@@ -62,21 +69,24 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthHydrator />
-      <LenisProvider>
-        {children}
-        <Toaster
-          richColors
-          position="top-right"
-          toastOptions={{
-            classNames: {
-              toast: 'font-sans',
-            },
-          }}
-        />
-      </LenisProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthHydrator />
+          <LenisProvider>
+            {children}
+            <LanguageSelector />
+            <Toaster
+              richColors
+              position="top-right"
+              toastOptions={{
+                classNames: { toast: 'font-sans' },
+              }}
+            />
+          </LenisProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }

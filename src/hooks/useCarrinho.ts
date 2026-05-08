@@ -2,10 +2,7 @@
 
 import { useCarrinhoStore } from '@/store/carrinho.store';
 
-const FRETE = 9.99;
-
 export function useCarrinho() {
   const store = useCarrinhoStore();
-  const total = store.subtotal() + FRETE;
-  return { ...store, frete: FRETE, total };
+  return { ...store, frete: 0, total: store.subtotal() };
 }

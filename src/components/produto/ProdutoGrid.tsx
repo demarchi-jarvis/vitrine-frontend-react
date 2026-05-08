@@ -48,7 +48,7 @@ export function ProdutoGrid({
         animate={{ opacity: 1 }}
         className="text-center py-24"
       >
-        <p className="text-wood-400 text-lg">{emptyMessage}</p>
+        <p className="text-muted-foreground text-lg">{emptyMessage}</p>
       </motion.div>
     );
   }

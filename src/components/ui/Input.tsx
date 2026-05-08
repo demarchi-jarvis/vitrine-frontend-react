@@ -1,40 +1,40 @@
 import { cn } from '@/lib/utils';
 import { forwardRef } from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { Label } from './label';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   hint?: string;
   success?: boolean;
+  required?: boolean;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, success, className, id, ...props }, ref) => {
+  ({ label, error, hint, success, required, className, id, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-wood-800">
+          <Label htmlFor={inputId} required={required}>
             {label}
-          </label>
+          </Label>
         )}
         <div className="relative">
           <input
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full px-4 py-3 rounded-xl text-sm text-wood-900 placeholder:text-wood-400',
-              'bg-sand-100 border border-sand-200',
-              'focus:outline-none focus:border-terracotta-600 focus:ring-2 focus:ring-terracotta-600/20',
-              'transition-all duration-300',
-              'disabled:opacity-60 disabled:cursor-not-allowed',
-              error && 'border-red-400 focus:border-red-500 focus:ring-red-500/20 pr-10',
-              success && !error && 'border-green-400 focus:border-green-500 focus:ring-green-500/20 pr-10',
+              'field-base',
+              error && 'border-red-400 focus:!border-red-500 focus:!ring-red-500/20 pr-10',
+              success && !error && 'border-green-400 focus:!border-green-500 focus:!ring-green-500/20 pr-10',
               className,
             )}
             aria-invalid={!!error}
-            aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
+            aria-describedby={
+              error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined
+            }
             {...props}
           />
           {error && (
@@ -51,12 +51,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p id={`${inputId}-error`} role="alert" className="text-red-600 text-xs flex items-center gap-1">
+          <p
+            id={`${inputId}-error`}
+            role="alert"
+            className="text-red-500 dark:text-red-400 text-xs flex items-center gap-1"
+          >
+            <AlertCircle className="w-3 h-3" strokeWidth={2} />
             {error}
           </p>
         )}
         {hint && !error && (
-          <p id={`${inputId}-hint`} className="text-wood-400 text-xs">
+          <p id={`${inputId}-hint`} className="text-muted-foreground text-xs">
             {hint}
           </p>
         )}

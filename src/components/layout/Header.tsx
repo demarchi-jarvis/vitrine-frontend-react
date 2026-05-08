@@ -8,29 +8,30 @@ import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, User, Menu, X, LogOut, Package, Settings, Plus } from 'lucide-react';
 import { useCarrinhoStore } from '@/store/carrinho.store';
 import { useAuth } from '@/hooks/useAuth';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { ROUTES } from '@/lib/routes';
 import { cn } from '@/lib/utils';
-
-const NAV_LINKS = [
-  { href: ROUTES.home, label: 'Início' },
-  { href: ROUTES.bazar, label: 'Bazar' },
-  { href: ROUTES.quemSomos, label: 'Quem Somos' },
-  { href: ROUTES.demandas, label: 'Demandas' },
-];
+import { useTranslation } from '@/contexts/LanguageContext';
 
 export function Header() {
   const { scrollY } = useScroll();
   const height = useTransform(scrollY, [0, 80], [80, 60]);
   const bgOpacity = useTransform(scrollY, [0, 80], [0, 1]);
-  const shadowOpacity = useTransform(scrollY, [0, 80], [0, 0.1]);
 
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const totalItens = useCarrinhoStore((s) => s.totalItens());
   const { isLoggedIn, logout, usuario } = useAuth();
+  const { t } = useTranslation();
 
-  // Close menus on route change
+  const NAV_LINKS = [
+    { href: ROUTES.home, label: t.nav.home },
+    { href: ROUTES.bazar, label: t.nav.bazar },
+    { href: ROUTES.quemSomos, label: t.nav.about },
+    { href: ROUTES.demandas, label: t.nav.demands },
+  ];
+
   useEffect(() => {
     setMobileOpen(false);
     setUserMenuOpen(false);
@@ -43,18 +44,11 @@ export function Header() {
 
   return (
     <>
-      <motion.header
-        style={{ height }}
-        className="fixed top-0 left-0 right-0 z-50"
-      >
-        {/* Glass background layer */}
+      <motion.header style={{ height }} className="fixed top-0 left-0 right-0 z-50">
+        {/* Background — switches in dark mode */}
         <motion.div
           style={{ opacity: bgOpacity }}
-          className="absolute inset-0 bg-sand-50/90 backdrop-blur-md border-b border-sand-200"
-        />
-        <motion.div
-          style={{ opacity: shadowOpacity }}
-          className="absolute inset-x-0 bottom-0 h-px bg-wood-900/10"
+          className="absolute inset-0 bg-sand-50/90 dark:bg-wood-900/90 backdrop-blur-md border-b border-sand-200 dark:border-wood-800"
         />
 
         <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-6">
@@ -63,7 +57,7 @@ export function Header() {
             <div className="w-8 h-8 rounded-lg bg-terracotta-600 flex items-center justify-center">
               <span className="font-serif text-sand-50 text-sm font-bold">V</span>
             </div>
-            <span className="font-serif text-wood-900 text-lg font-semibold hidden sm:block">
+            <span className="font-serif text-wood-900 dark:text-sand-50 text-lg font-semibold hidden sm:block">
               Vitrine do Artesanato
             </span>
           </Link>
@@ -77,15 +71,15 @@ export function Header() {
                 className={cn(
                   'relative text-sm font-medium transition-colors duration-300 py-1',
                   isActive(link.href)
-                    ? 'text-terracotta-600'
-                    : 'text-wood-700 hover:text-terracotta-600',
+                    ? 'text-terracotta-600 dark:text-terracotta-400'
+                    : 'text-wood-700 dark:text-sand-300 hover:text-terracotta-600 dark:hover:text-terracotta-400',
                 )}
               >
                 {link.label}
                 {isActive(link.href) && (
                   <motion.span
                     layoutId="nav-indicator"
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-terracotta-600 rounded-full"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-terracotta-600 dark:bg-terracotta-400 rounded-full"
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
                 )}
@@ -94,14 +88,17 @@ export function Header() {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {/* Theme toggle */}
+            <ThemeToggle />
+
             {/* Cart */}
             <Link
               href={ROUTES.carrinho}
-              className="relative p-2 rounded-full hover:bg-sand-100 transition-colors duration-300 focus-ring"
-              aria-label="Carrinho de compras"
+              className="relative p-2 rounded-full hover:bg-sand-100 dark:hover:bg-wood-800 transition-colors duration-300 focus-ring"
+              aria-label={t.nav.cart}
             >
-              <ShoppingCart strokeWidth={1.25} className="w-5 h-5 text-wood-700" />
+              <ShoppingCart strokeWidth={1.25} className="w-5 h-5 text-wood-700 dark:text-sand-300" />
               <AnimatePresence>
                 {totalItens > 0 && (
                   <motion.span
@@ -122,7 +119,7 @@ export function Header() {
                 <motion.button
                   onClick={() => setUserMenuOpen((o) => !o)}
                   whileTap={{ scale: 0.95 }}
-                  className="p-2 rounded-full hover:bg-sand-100 transition-colors duration-300 focus-ring"
+                  className="p-2 rounded-full hover:bg-sand-100 dark:hover:bg-wood-800 transition-colors duration-300 focus-ring"
                   aria-label="Menu do usuário"
                 >
                   {usuario?.foto ? (
@@ -134,7 +131,7 @@ export function Header() {
                       className="rounded-full object-cover w-7 h-7"
                     />
                   ) : (
-                    <User strokeWidth={1.25} className="w-5 h-5 text-wood-700" />
+                    <User strokeWidth={1.25} className="w-5 h-5 text-wood-700 dark:text-sand-300" />
                   )}
                 </motion.button>
 
@@ -144,23 +141,23 @@ export function Header() {
                       initial={{ opacity: 0, y: 8, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 top-12 w-56 glass rounded-2xl overflow-hidden py-2"
+                      transition={{ duration: 0.18 }}
+                      className="absolute right-0 top-12 w-56 rounded-2xl overflow-hidden py-2 bg-background border border-border shadow-2xl"
                     >
-                      <p className="px-4 py-2 text-xs text-wood-500 border-b border-sand-200">
+                      <p className="px-4 py-2 text-xs text-muted-foreground border-b border-border">
                         {usuario?.nome} {usuario?.sobrenome}
                       </p>
                       {[
-                        { href: ROUTES.painel, label: 'Painel', icon: Settings },
-                        { href: ROUTES.perfil, label: 'Meu Perfil', icon: User },
-                        { href: ROUTES.pedidos(), label: 'Pedidos', icon: Package },
-                        { href: ROUTES.cadastrarProduto, label: 'Vender', icon: Plus },
+                        { href: ROUTES.painel, label: t.nav.panel, icon: Settings },
+                        { href: ROUTES.perfil, label: t.nav.profile, icon: User },
+                        { href: ROUTES.pedidos(), label: t.nav.orders, icon: Package },
+                        { href: ROUTES.cadastrarProduto, label: t.nav.sell, icon: Plus },
                       ].map(({ href, label, icon: Icon }) => (
                         <Link
                           key={href}
                           href={href}
                           onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-wood-700 hover:bg-sand-100 hover:text-terracotta-600 transition-colors cursor-pointer"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-surface hover:text-primary transition-colors cursor-pointer"
                         >
                           <Icon strokeWidth={1.25} className="w-4 h-4" />
                           {label}
@@ -168,10 +165,10 @@ export function Header() {
                       ))}
                       <button
                         onClick={() => { setUserMenuOpen(false); logout(); }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-terracotta-600 hover:bg-terracotta-600/10 transition-colors border-t border-sand-200 mt-1 cursor-pointer"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-500/10 transition-colors border-t border-border mt-1 cursor-pointer"
                       >
                         <LogOut strokeWidth={1.25} className="w-4 h-4" />
-                        Sair
+                        {t.nav.logout}
                       </button>
                     </motion.div>
                   )}
@@ -187,7 +184,7 @@ export function Header() {
                   'focus-ring cursor-pointer',
                 )}
               >
-                Entrar
+                {t.nav.login}
               </Link>
             )}
 
@@ -195,7 +192,7 @@ export function Header() {
             <motion.button
               onClick={() => setMobileOpen((o) => !o)}
               whileTap={{ scale: 0.92 }}
-              className="lg:hidden p-2 rounded-full hover:bg-sand-100 transition-colors focus-ring cursor-pointer"
+              className="lg:hidden p-2 rounded-full hover:bg-sand-100 dark:hover:bg-wood-800 transition-colors focus-ring cursor-pointer"
               aria-label="Abrir menu"
             >
               <AnimatePresence mode="wait" initial={false}>
@@ -207,7 +204,7 @@ export function Header() {
                     exit={{ rotate: 90, opacity: 0 }}
                     transition={{ duration: 0.15 }}
                   >
-                    <X strokeWidth={1.25} className="w-5 h-5 text-wood-900" />
+                    <X strokeWidth={1.25} className="w-5 h-5 text-foreground" />
                   </motion.span>
                 ) : (
                   <motion.span
@@ -217,7 +214,7 @@ export function Header() {
                     exit={{ rotate: -90, opacity: 0 }}
                     transition={{ duration: 0.15 }}
                   >
-                    <Menu strokeWidth={1.25} className="w-5 h-5 text-wood-900" />
+                    <Menu strokeWidth={1.25} className="w-5 h-5 text-foreground" />
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -233,8 +230,8 @@ export function Header() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-x-0 top-16 z-40 glass border-b border-sand-200 lg:hidden"
+            transition={{ duration: 0.25 }}
+            className="fixed inset-x-0 top-16 z-40 border-b border-border bg-background/95 backdrop-blur-md lg:hidden"
           >
             <nav className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-1">
               {NAV_LINKS.map((link) => (
@@ -243,10 +240,10 @@ export function Header() {
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
-                    'font-medium py-3 px-3 rounded-xl border-b border-sand-200 last:border-0 transition-colors cursor-pointer',
+                    'font-medium py-3 px-3 rounded-xl border-b border-border last:border-0 transition-colors cursor-pointer',
                     isActive(link.href)
-                      ? 'text-terracotta-600 bg-terracotta-600/5'
-                      : 'text-wood-700 hover:text-terracotta-600 hover:bg-sand-100',
+                      ? 'text-primary bg-primary/10'
+                      : 'text-foreground hover:text-primary hover:bg-surface',
                   )}
                 >
                   {link.label}
@@ -258,7 +255,7 @@ export function Header() {
                   onClick={() => setMobileOpen(false)}
                   className="mt-3 px-6 py-3 rounded-full bg-terracotta-600 text-sand-50 text-center font-medium cursor-pointer"
                 >
-                  Entrar
+                  {t.nav.login}
                 </Link>
               )}
             </nav>

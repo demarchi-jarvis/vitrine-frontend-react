@@ -71,7 +71,6 @@ export interface Autor {
   telefone: string;
   pontos: number;
   loja: boolean;
-  senha: string;
 }
 
 export interface Produto {
@@ -121,6 +120,7 @@ export interface ItemCarrinho {
   preco: number;
   imagem: string;
   quantidade: number;
+  estoque: number;
   autorId: string;
   autorNome: string;
 }

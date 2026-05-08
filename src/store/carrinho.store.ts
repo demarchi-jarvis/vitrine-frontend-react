@@ -21,9 +21,9 @@ export const useCarrinhoStore = create<CarrinhoStore>()(
 
       adicionar: (produto) =>
         set((state) => {
-          // BUG-09 fix: dedup by ID, not name
           const existing = state.itens.find((i) => i.id === produto.id);
           if (existing) {
+            if (existing.quantidade >= produto.quantidade) return state;
             return {
               itens: state.itens.map((i) =>
                 i.id === produto.id ? { ...i, quantidade: i.quantidade + 1 } : i,
@@ -36,7 +36,7 @@ export const useCarrinhoStore = create<CarrinhoStore>()(
             preco: produto.preco,
             imagem: produto.imagem,
             quantidade: 1,
-            // BUG-03 fix: store real autor ID
+            estoque: produto.quantidade,
             autorId: produto.autor?.id ?? '',
             autorNome: produto.autor?.nome ?? '',
           };
@@ -49,7 +49,11 @@ export const useCarrinhoStore = create<CarrinhoStore>()(
       atualizar: (id, quantidade) =>
         set((state) => {
           if (quantidade <= 0) return { itens: state.itens.filter((i) => i.id !== id) };
-          return { itens: state.itens.map((i) => (i.id === id ? { ...i, quantidade } : i)) };
+          return {
+            itens: state.itens.map((i) =>
+              i.id === id ? { ...i, quantidade: Math.min(quantidade, i.estoque) } : i,
+            ),
+          };
         }),
 
       // BUG-07 fix: single unified limpar via Zustand (sessionStorage via persist)
